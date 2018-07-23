@@ -1,6 +1,6 @@
 # lolcat
 
-A `c` implementation of the lolcat command forked from [jaseg](https://github.com/jaseg/lolcat).
+A c++ implementation of the lolcat command forked from [jaseg](https://github.com/jaseg/lolcat).
 
 ## Screenshot
 
@@ -8,28 +8,7 @@ A `c` implementation of the lolcat command forked from [jaseg](https://github.co
 
 ## Why?
 
-This `lolcat` clone is an attempt to reduce the world's carbon dioxide emissions by optimizing inefficient code. It's >10x as fast and <0.1% as large as the original one.
-
-```bash
-newton~/d/lolcat <3 dmesg>foo
-newton~/d/lolcat <3 time upstream/bin/lolcat foo
-13.51user 1.34system 0:15.99elapsed 92%CPU (0avgtext+0avgdata 10864maxresident)k
-0inputs+0outputs (0major+1716minor)pagefaults 0swaps
-newton~/d/lolcat <3 time ./lolcat foo
-0.02user 0.00system 0:00.09elapsed 34%CPU (0avgtext+0avgdata 1936maxresident)k
-0inputs+0outputs (0major+117minor)pagefaults 0swaps
-```
-
-Bonus comparison with [python-lolcat](https://github.com/tehmaze/lolcat/):
-```bash
-newton~/d/lolcat <3 dmesg>foo
-$ time python-lolcat foo
-12.27user 0.00system 0:12.29elapsed 99%CPU (0avgtext+0avgdata 11484maxresident)k
-0inputs+0outputs (0major+1627minor)pagefaults 0swaps
-$ time c-lolcat foo
-0.29user 0.00system 0:00.30elapsed 98%CPU (0avgtext+0avgdata 468maxresident)k
-0inputs+0outputs (0major+21minor)pagefaults 0swaps
-```
-
-(Read: ```c-lolcat << python-lolcat << ruby-lolcat```)
-
+I wanted something a tad faster than the C implementation from Jaseg; as I want
+to use it in my command-line prompt. There were some bugs that I've cleaned up,
+but I also want to add a few modes that are customized for using in particular
+scenarios.
