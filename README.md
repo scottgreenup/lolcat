@@ -1,58 +1,10 @@
-# What?
+# lolcat
 
-![](https://raw.githubusercontent.com/jaseg/lolcat/master/LOLCat-Rainbow.jpg)
+A `c` implementation of the lolcat command forked from [jaseg](https://github.com/jaseg/lolcat).
 
 ## Screenshot
 
-![](https://raw.githubusercontent.com/jaseg/lolcat/master/screenshot.png)
-
-![](./sl.gif)
-
-## Installation
-
-### Archlinux
-
-There's an [AUR package](https://aur.archlinux.org/packages/c-lolcat):
-
-```bash
-$ yaourt -S c-lolcat
-```
-
-### Ubuntu (Snap)
-
-See [this awesome blog post by a kind person from the internet](https://blog.simos.info/how-to-make-a-snap-package-for-lolcat-with-snapcraft-on-ubuntu/):
-
-```bash
-$ snap install lolcat-c
-```
-
-### Mac
-
-Build the system-libc version (instead of the statically linked version) with:
-```
-$ make lolcat
-```
-...and put the resulting binary at a place of your choice.
-
-### Others
-
-```bash
-$ make && sudo make install
-```
-
-If this can't find musl and you have it installed somewhere, run
-```bash
-$ make MUSLDIR=/path/to/musl
-```
-
-If you don't have a musl around yet, the easiest way to build is to run
-```bash
-$ git submodule init
-$ git submodule update
-$ make
-```
-
-This will checkout and build musl in this repository's ```musl``` dir.
+![](https://raw.githubusercontent.com/scottgreenup/lolcat/master/screenshot.png)
 
 ## Why?
 
