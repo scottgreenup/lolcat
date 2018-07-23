@@ -37,6 +37,8 @@ struct FlagSetElement {
     bool HasArg;
 };
 
+// Each 'type' has a way to cleanup, a way to create one, and a case block in
+// SetArg
 class FlagSet {
 public:
     FlagSet() {}
@@ -55,7 +57,6 @@ public:
     }
 
     std::string * String(std::string name, std::string value = "", std::string usage = "") {
-
         FlagSetElement element;
         std::string * flagValue = new std::string();
         std::string * defaultValue = new std::string(value);
@@ -81,31 +82,44 @@ public:
     void Parse(std::vector<std::string> arguments) {
         for (std::size_t i = 0; i < arguments.size(); i++) {
             std::string arg = arguments[i];
-            if (arg[0] == '-') {
-                if (arg[1] == '-') {
-                    std::string key = arg.substr(2);
+            if (arg[0] == '-' && arg[1] == '-') {
+                std::string name = arg.substr(2);
 
-                    if (this->m_arguments.count(key) == 0) {
-                        throw ArgumentException(arg);
-                    }
-
-                    if (this->m_arguments[key].HasArg) {
-                        std::string value = arguments[i+1];
-                        std::string * target = static_cast<std::string*>(
-                                this->m_arguments[key].Value);
-                        *target = value;
-                    }
-
-
-                } else {
-                    if (arg.length() != 2) {
-                        throw ArgumentException(arg);
-                    }
-
-                    std::string key = arg.substr(1);
-                    std::string value = arguments[i+1];
+                if (this->m_arguments.count(name) == 0) {
+                    throw ArgumentException(arg);
                 }
+
+                if (this->m_arguments[name].HasArg) {
+                    this->SetArg(name, arguments[i+1]);
+                }
+
+            } else if (arg[0] == '-') {
+                if (arg.length() != 2) {
+                    throw ArgumentException(arg);
+                }
+
+                std::string name = arg.substr(1);
+                std::string value = arguments[i+1];
+
+            } else {
+                // TODO we have a non-flag argument
             }
+        }
+    }
+
+private:
+    void SetArg(std::string name, std::string value) {
+        switch (this->m_arguments[name].Type) {
+        case FlagSetElementType::String:
+            {
+                std::string * target = static_cast<std::string*>(
+                        this->m_arguments[name].Value);
+                *target = value;
+            }
+            break;
+        default:
+            // TODO change this to a better exception
+            throw std::logic_error("Unknown FlagSetElementType");
         }
     }
 
