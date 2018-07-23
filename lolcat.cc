@@ -25,11 +25,14 @@ private:
 namespace flag {
 
 enum FlagSetElementType {
-    String
+    String,
+    Double,
 };
 
 struct FlagSetElement {
     void *Value;
+
+    // TODO use the default value
     void *DefaultValue;
 
     std::string Usage;
@@ -57,15 +60,28 @@ public:
     }
 
     std::string * String(std::string name, std::string value = "", std::string usage = "") {
+        auto fv = this->Argument<std::string>(name, value, usage, FlagSetElementType::String);
+        this->m_arguments[name].HasArg = true;
+        return fv;
+    }
+
+    double * Double(std::string name, double value = 0.0, std::string usage = "") {
+        auto fv = this->Argument<double>(name, value, usage, FlagSetElementType::Double);
+        this->m_arguments[name].HasArg = true;
+        return fv;
+    }
+
+    template<typename T>
+    T* Argument(std::string name, T value, std::string usage, FlagSetElementType type) {
         FlagSetElement element;
-        std::string * flagValue = new std::string();
-        std::string * defaultValue = new std::string(value);
+
+        T * flagValue = new T;
+        T * defaultValue = new T(value);
 
         element.Value = static_cast<void*>(flagValue);
         element.DefaultValue = static_cast<void*>(defaultValue);
-        element.Type = FlagSetElementType::String;
+        element.Type = type;
         element.Usage = usage;
-        element.HasArg = true;
         this->m_arguments[name] = element;
 
         return flagValue;
@@ -117,6 +133,13 @@ private:
                 *target = value;
             }
             break;
+        case FlagSetElementType::Double:
+            {
+                double * target = static_cast<double*>(
+                        this->m_arguments[name].Value);
+                *target = std::stod(value);
+            }
+            break;
         default:
             // TODO change this to a better exception
             throw std::logic_error("Unknown FlagSetElementType");
@@ -137,11 +160,14 @@ void ParseArgs(int argc, char **argv) {
     //
     auto fs = flag::FlagSet();
     auto whatever = fs.String("whatever");
+    auto something = fs.Double("something");
+
 
     auto arguments = fs.Convert(argc, argv);
     fs.Parse(arguments);
 
-    std::cout << "Whatever == " << *whatever << std::endl;
+    std::cout << "whatever == " << *whatever << std::endl;
+    std::cout << "something * 2.5 == " << *something * 2.5 << std::endl;
 }
 
 int main(int argc, char **argv) {
