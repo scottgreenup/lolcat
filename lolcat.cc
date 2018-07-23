@@ -6,7 +6,12 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <cstdint>
 #include <vector>
+
+#include <cerrno>
+#include <cstring>
+#include <sys/time.h>
 
 class UnknownArgumentException : public std::exception {
 public:
@@ -201,13 +206,81 @@ Options ParseArgs(int argc, char **argv) {
     return options;
 }
 
+
+// TODO: C++ify
+void find_escape_sequences(int c, int *state) {
+    if (c == '\033') {
+        *state = 1;
+    } else if (*state == 1) {
+        if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
+            *state = 2;
+        }
+    } else {
+        *state = 0;
+    }
+}
+
+#define ARRAY_SIZE(foo) (sizeof(foo)/sizeof(foo[0]))
+const uint8_t codes[] = {
+    39,38,44,43,49,48,84,83,119,118,154,148,
+    184,178,214,208,209,203,204,198,199,163,
+    164,128,129,93,99,63,69,33
+};
+
 int main(int argc, char **argv) {
+    Options options;
     try {
-        auto options = ParseArgs(argc, argv);
-        std::cout << *options.force << std::endl;
+        options = ParseArgs(argc, argv);
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 1;
     }
+    std::cout << *options.force << std::endl;
+
+
+    // Enter 'c'
+    double freq_h = 0.23, freq_v = 0.1;
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    double offx = (tv.tv_sec % 300) / 300.0;
+
+    FILE *f = stdin;
+    int escape_state =0;
+    int i = 0;
+    int l = 0;
+    int c = 0;
+    int cc = -1;
+
+    while ((c = fgetwc(f)) > 0) {
+        find_escape_sequences(c, &escape_state);
+
+        if (escape_state == 0) {
+            if (c == '\n') {
+                l++;
+                i = 0;
+            } else {
+                int ncc = offx*ARRAY_SIZE(codes) + (int)((i+=wcwidth(c))*freq_h + l*freq_v);
+                if(cc != ncc) {
+                    printf("\033[38;5;%hhum", codes[(cc = ncc) % ARRAY_SIZE(codes)]);
+                }
+            }
+        }
+
+        printf("%lc", c);
+
+        if (escape_state == 2) {
+            printf("\033[38;5;%hhum", codes[cc % ARRAY_SIZE(codes)]);
+        }
+    }
+
+    printf("\033[0m");
+    cc = -1;
+    fclose(f);
+    if (c != WEOF && c != 0) {
+        std::cerr << "Error reading stdin: " << std::strerror(errno) << std::endl;
+        return 2;
+    }
+
     return 0;
 }
