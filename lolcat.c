@@ -1,17 +1,17 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <wchar.h>
+#define _POSIX_C_SOURCE 200809L
+#define _XOPEN_SOURCE
+
 #include <ctype.h>
 #include <err.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
-#include <locale.h>
-#include <unistd.h>
 #include <sys/time.h>
-
-
-#define _GNU_SOURCE // for fmemopen
+#include <locale.h>
+#include <wchar.h>
+#include <unistd.h>
 
 
 static char helpstr[] = "\n"
@@ -31,9 +31,10 @@ static char helpstr[] = "\n"
 "  lolcat            Copy standard input to standard output.\n"
 "  fortune | lolcat  Display a rainbow cookie.\n"
 "\n"
-"Report lolcat bugs to <http://www.github.org/jaseg/lolcat/issues>\n"
-"lolcat home page: <http://www.github.org/jaseg/lolcat/>\n"
-"Original idea: <http://www.github.org/busyloop/lolcat/>\n";
+"  Report bugs: <http://www.github.org/scottgreenup/lolcat/issues>\n"
+"    Home page: <http://www.github.org/scottgreenup/lolcat/>\n"
+"Original idea: <http://www.github.org/busyloop/lolcat/>\n"
+"  Forked From: <http://www.github.com/jaseg/lolcat/>\n";
 
 #define ARRAY_SIZE(foo) (sizeof(foo)/sizeof(foo[0]))
 const char codes[] = {
@@ -117,7 +118,7 @@ int main(int argc, char **argv) {
 
     setlocale(LC_ALL, "");
 
-    i=0;
+    i = 0;
     for (char **filename = inputs; filename < inputs_end; filename++) {
         FILE *f = stdin;
         int escape_state = 0;
@@ -156,7 +157,7 @@ int main(int argc, char **argv) {
                 printf("\033[38;5;%hhum", codes[cc % ARRAY_SIZE(codes)]);
             }
         }
-        printf("\n\033[0m");
+        printf("\033[0m");
         cc = -1;
 
         fclose(f);
