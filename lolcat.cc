@@ -53,29 +53,7 @@ struct FlagSetElement {
 class FlagSet {
 public:
     FlagSet() {}
-
-    ~FlagSet() {
-        /*
-        for (auto [key, val] : this->m_arguments) {
-            switch (val.Type) {
-            case FlagSetElementType::String:
-                delete static_cast<std::string*>(val.Value);
-                delete static_cast<std::string*>(val.DefaultValue);
-                break;
-            case FlagSetElementType::Double:
-                delete static_cast<double*>(val.Value);
-                delete static_cast<double*>(val.DefaultValue);
-                break;
-            case FlagSetElementType::Boolean:
-                delete static_cast<bool*>(val.Value);
-                delete static_cast<bool*>(val.DefaultValue);
-                break;
-            default:
-                break;
-            }
-        }
-        */
-    }
+    ~FlagSet() {}
 
     std::shared_ptr<std::string> String(std::string name, std::string value = "", std::string usage = "") {
         auto fv = this->Argument<std::string>(name, value, usage, FlagSetElementType::String);
@@ -126,8 +104,6 @@ public:
                     std::cout << "name has no pre: " << name << std::endl;
                     throw UnknownArgumentException(arg);
                 }
-
-                std::cout << "name: " << name << std::endl;
 
                 if (this->m_arguments[name].HasArg) {
                     this->SetArg(name, arguments[i+1]);
@@ -235,8 +211,6 @@ int main(int argc, char **argv) {
         std::cerr << e.what() << std::endl;
         return 1;
     }
-    std::cout << *options.force << std::endl;
-
 
     // Enter 'c'
     double freq_h = 0.23, freq_v = 0.1;
