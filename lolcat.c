@@ -1,18 +1,3 @@
-/* Copyright (C) 2014 jaseg <github@jaseg.net>
- *
- * DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
- * Version 2, December 2004
- *
- * Everyone is permitted to copy and distribute verbatim or modified
- * copies of this license document, and changing it is allowed as long
- * as the name is changed.
- *
- * DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
- * TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
- *
- * 0. You just DO WHAT THE FUCK YOU WANT TO.
- */
-
 #include <stdint.h>
 #include <stdio.h>
 #include <wchar.h>
@@ -25,11 +10,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-#ifdef __APPLE__
-#include "fmemopen.h"
-#else // __APPLE__
-#define _GNU_SOURCE //for fmemopen
-#endif // __APPLE__
+
+#define _GNU_SOURCE // for fmemopen
 
 
 static char helpstr[] = "\n"
@@ -54,15 +36,20 @@ static char helpstr[] = "\n"
 "Original idea: <http://www.github.org/busyloop/lolcat/>\n";
 
 #define ARRAY_SIZE(foo) (sizeof(foo)/sizeof(foo[0]))
-const char codes[] = {39,38,44,43,49,48,84,83,119,118,154,148,184,178,214,208,209,203,204,198,199,163,164,128,129,93,99,63,69,33};
+const char codes[] = {
+    39,38,44,43,49,48,84,83,119,118,154,148,
+    184,178,214,208,209,203,204,198,199,163,
+    164,128,129,93,99,63,69,33
+};
 
-void find_escape_sequences(int c, int *state){
-    if(c == '\033'){ /* Escape sequence YAY */
+void find_escape_sequences(int c, int *state) {
+    if (c == '\033') {
         *state = 1;
-    }else if(*state == 1){
-        if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))
+    } else if (*state == 1) {
+        if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
             *state = 2;
-    }else{
+        }
+    } else {
         *state = 0;
     }
 }
@@ -78,47 +65,51 @@ void version(){
     exit(0);
 }
 
-int main(int argc, char **argv){
-    int c, cc=-1, i, l=0;
+int main(int argc, char **argv) {
+    int c, cc=-1, l=0;
     int colors=1;
     double freq_h = 0.23, freq_v = 0.1;
 
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    double offx = (tv.tv_sec%300)/300.0;
+    double offx = (tv.tv_sec % 300) / 300.0;
 
-    for(i=1;i<argc;i++){
+    int i = 1;
+    for (; i < argc; i++) {
         char *endptr;
-        if(!strcmp(argv[i], "-h")){
-            if((++i)<argc){
+        if (!strcmp(argv[i], "-h")) {
+            if ((++i)<argc) {
                 freq_h = strtod(argv[i], &endptr);
-                if(*endptr)
+                if (*endptr) {
                     usage();
-            }else{
+                }
+            } else {
                 usage();
             }
-        }else if(!strcmp(argv[i], "-v")){
-            if((++i)<argc){
+        } else if (!strcmp(argv[i], "-v")) {
+            if ((++i) < argc) {
                 freq_v = strtod(argv[i], &endptr);
-                if(*endptr)
+                if (*endptr) {
                     usage();
-            }else{
+                }
+            } else {
                 usage();
             }
-        }else if(!strcmp(argv[i], "-f")){
+        } else if (!strcmp(argv[i], "-f")) {
             colors = 1;
-        }else if(!strcmp(argv[i], "--version")){
+        } else if (!strcmp(argv[i], "--version")) {
             version();
-        }else{
-            if(!strcmp(argv[i], "--"))
+        } else {
+            if (!strcmp(argv[i], "--")) {
                 i++;
+            }
             break;
         }
     }
 
-    char **inputs = argv+i;
-    char **inputs_end = argv+argc;
-    if(inputs == inputs_end){
+    char **inputs = argv + i;
+    char **inputs_end = argv + argc;
+    if (inputs == inputs_end) {
         char *foo[] = {"-"};
         inputs = foo;
         inputs_end = inputs+1;
@@ -127,47 +118,50 @@ int main(int argc, char **argv){
     setlocale(LC_ALL, "");
 
     i=0;
-    for(char **filename=inputs; filename<inputs_end; filename++){
+    for (char **filename = inputs; filename < inputs_end; filename++) {
         FILE *f = stdin;
         int escape_state = 0;
 
-        if(!strcmp(*filename, "--help"))
+        if (!strcmp(*filename, "--help")) {
             f = fmemopen(helpstr, strlen(helpstr), "r");
-        else if(strcmp(*filename, "-"))
+        } else if (strcmp(*filename, "-")) {
             f = fopen(*filename, "r");
-        
-        if(!f){
+        }
+
+        if (!f) {
             fprintf(stderr, "Cannot open input file \"%s\": %s\n", *filename, strerror(errno));
             return 2;
-        } 
+        }
 
-        while((c = fgetwc(f)) > 0){
-            if(colors){
+        while ((c = fgetwc(f)) > 0) {
+            if (colors) {
                 find_escape_sequences(c, &escape_state);
 
-                if(!escape_state){
-                    if(c == '\n'){
+                if (!escape_state) {
+                    if (c == '\n') {
                         l++;
                         i = 0;
-                    }else{
+                    } else {
                         int ncc = offx*ARRAY_SIZE(codes) + (int)((i+=wcwidth(c))*freq_h + l*freq_v);
-                        if(cc != ncc)
+                        if(cc != ncc) {
                             printf("\033[38;5;%hhum", codes[(cc = ncc) % ARRAY_SIZE(codes)]);
+                        }
                     }
                 }
             }
 
             printf("%lc", c);
 
-            if(escape_state == 2)
+            if (escape_state == 2) {
                 printf("\033[38;5;%hhum", codes[cc % ARRAY_SIZE(codes)]);
+            }
         }
         printf("\n\033[0m");
         cc = -1;
 
         fclose(f);
 
-        if(c != WEOF && c != 0){
+        if (c != WEOF && c != 0) {
             fprintf(stderr, "Error reading input file \"%s\": %s\n", *filename, strerror(errno));
             return 2;
         }
