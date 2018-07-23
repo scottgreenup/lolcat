@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
     int escape_state =0;
     int i = 0;
     int l = 0;
-    int c = 0;
+    unsigned int c = 0;
     int cc = -1;
 
     while ((c = fgetwc(f)) > 0) {
