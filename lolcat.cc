@@ -4,6 +4,7 @@
 #include <exception>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <vector>
 
@@ -32,10 +33,10 @@ enum FlagSetElementType {
 };
 
 struct FlagSetElement {
-    void *Value;
+    std::shared_ptr<void> Value;
 
     // TODO use the default value
-    void *DefaultValue;
+    std::shared_ptr<void> DefaultValue;
 
     std::string Usage;
     FlagSetElementType Type;
@@ -49,6 +50,7 @@ public:
     FlagSet() {}
 
     ~FlagSet() {
+        /*
         for (auto [key, val] : this->m_arguments) {
             switch (val.Type) {
             case FlagSetElementType::String:
@@ -67,33 +69,34 @@ public:
                 break;
             }
         }
+        */
     }
 
-    std::string * String(std::string name, std::string value = "", std::string usage = "") {
+    std::shared_ptr<std::string> String(std::string name, std::string value = "", std::string usage = "") {
         auto fv = this->Argument<std::string>(name, value, usage, FlagSetElementType::String);
         this->m_arguments[name].HasArg = true;
         return fv;
     }
 
-    double * Double(std::string name, double value = 0.0, std::string usage = "") {
+    std::shared_ptr<double> Double(std::string name, double value = 0.0, std::string usage = "") {
         auto fv = this->Argument<double>(name, value, usage, FlagSetElementType::Double);
         this->m_arguments[name].HasArg = true;
         return fv;
     }
 
-    bool * Boolean(std::string name, bool value = false, std::string usage = "") {
+    std::shared_ptr<bool> Boolean(std::string name, bool value = false, std::string usage = "") {
         auto fv = this->Argument<bool>(name, value, usage, FlagSetElementType::Boolean);
         this->m_arguments[name].HasArg = false;
         return fv;
     }
 
     template<typename T>
-    T* Argument(std::string name, T value, std::string usage, FlagSetElementType type) {
+    std::shared_ptr<T> Argument(std::string name, T value, std::string usage, FlagSetElementType type) {
         FlagSetElement element;
-        T * flagValue = new T;
-        T * defaultValue = new T(value);
-        element.Value = static_cast<void*>(flagValue);
-        element.DefaultValue = static_cast<void*>(defaultValue);
+        std::shared_ptr<T> flagValue = std::make_shared<T>();
+        std::shared_ptr<T> defaultValue = std::make_shared<T>(value);
+        element.Value = std::static_pointer_cast<void>(flagValue);
+        element.DefaultValue = std::static_pointer_cast<void>(defaultValue);
         element.Type = type;
         element.Usage = usage;
         this->m_arguments[name] = element;
@@ -139,8 +142,7 @@ private:
         switch (this->m_arguments[name].Type) {
         case FlagSetElementType::Boolean:
             {
-                bool * target = static_cast<bool*>(
-                        this->m_arguments[name].Value);
+                std::shared_ptr<bool> target = std::static_pointer_cast<bool>(this->m_arguments[name].Value);
                 *target = true;
             }
             break;
@@ -154,14 +156,14 @@ private:
         switch (this->m_arguments[name].Type) {
         case FlagSetElementType::String:
             {
-                std::string * target = static_cast<std::string*>(
+                std::shared_ptr<std::string> target = std::static_pointer_cast<std::string>(
                         this->m_arguments[name].Value);
                 *target = value;
             }
             break;
         case FlagSetElementType::Double:
             {
-                double * target = static_cast<double*>(
+                std::shared_ptr<double> target = std::static_pointer_cast<double>(
                         this->m_arguments[name].Value);
                 *target = std::stod(value);
             }
@@ -178,29 +180,31 @@ private:
 
 }
 
-void ParseArgs(int argc, char **argv) {
+struct Options {
+    std::shared_ptr<double> horizontal;
+    std::shared_ptr<double> vertical;
+    std::shared_ptr<bool> force;
+};
 
-    // --help,  -h: Show the help message
-    // --force, -f: Force color even when stdout is not a tty
-    // We do not support --this="syntax"
-    //
+Options ParseArgs(int argc, char **argv) {
     auto fs = flag::FlagSet();
 
-    auto horizontal = fs.Double("horizontal");
-    auto vertical = fs.Double("vertical");
-    auto force = fs.Boolean("force");
+    Options options = {
+        .horizontal = fs.Double("horizontal"),
+        .vertical = fs.Double("vertical"),
+        .force = fs.Boolean("force"),
+    };
 
     auto arguments = fs.Convert(argc, argv);
     fs.Parse(arguments);
 
-    std::cout << "horizontal == " << *horizontal << std::endl;
-    std::cout << "vertical == " << *vertical << std::endl;
-    std::cout << "force == " << *force << std::endl;
+    return options;
 }
 
 int main(int argc, char **argv) {
     try {
-        ParseArgs(argc, argv);
+        auto options = ParseArgs(argc, argv);
+        std::cout << *options.force << std::endl;
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 1;
