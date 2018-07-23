@@ -4,7 +4,7 @@ A c++ implementation of the lolcat command forked from [jaseg](https://github.co
 
 ## Screenshot
 
-![](https://raw.githubusercontent.com/scottgreenup/lolcat/master/screenshot.png)
+![](https://raw.githubusercontent.com/scottgreenup/lolcat/master/lolcat.gif)
 
 ## Why?
 
