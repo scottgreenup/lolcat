@@ -223,10 +223,10 @@ int main(int argc, char **argv) {
     int escape_state =0;
     int i = 0;
     int l = 0;
-    unsigned int c = 0;
+    wint_t c = 0;
     int cc = -1;
 
-    while ((c = fgetwc(f)) > 0) {
+    while ((c = fgetwc(f)) != WEOF) {
         find_escape_sequences(c, &escape_state);
 
         if (escape_state == 0) {
@@ -251,7 +251,8 @@ int main(int argc, char **argv) {
     printf("\033[0m");
     cc = -1;
     fclose(f);
-    if (c != WEOF && c != 0) {
+
+    if (ferror(f)) {
         std::cerr << "Error reading stdin: " << std::strerror(errno) << std::endl;
         return 2;
     }
